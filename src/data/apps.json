@@ -4,6 +4,7 @@
     "name": "BunnyFocus",
     "description": "A gamified task tracker with a virtual bunny pet that levels up as you complete your Google Tasks.",
     "image": "",
+    "icon": "bunny",
     "url": "https://bunnyfocus-backend.onrender.com"
   },
   {
@@ -11,6 +12,7 @@
     "name": "Flight Watch",
     "description": "Monitors flight and hotel prices and reports back when a good deal shows up.",
     "image": "",
+    "icon": "plane",
     "url": "https://amir-gutterman.github.io/flight-watch/"
   }
 ]
