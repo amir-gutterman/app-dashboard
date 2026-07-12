@@ -2,16 +2,39 @@ import { useEffect, useState } from 'react'
 import defaultApps from '../data/apps.json'
 import type { AppEntry } from '../types'
 
-const STORAGE_KEY = 'app-dashboard.apps.v1'
+// Stores only local *changes* relative to apps.json (never a full snapshot),
+// so newly deployed entries in apps.json always show up on every device,
+// and a device's local edits/additions/deletions still layer on top.
+const STORAGE_KEY = 'app-dashboard.overrides.v1'
 
-function load(): AppEntry[] {
+interface Overrides {
+  added: AppEntry[]
+  edited: Record<string, Omit<AppEntry, 'id'>>
+  deletedIds: string[]
+}
+
+const EMPTY_OVERRIDES: Overrides = { added: [], edited: {}, deletedIds: [] }
+
+function loadOverrides(): Overrides {
   const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return defaultApps as AppEntry[]
+  if (!raw) return EMPTY_OVERRIDES
   try {
-    return JSON.parse(raw) as AppEntry[]
+    return { ...EMPTY_OVERRIDES, ...JSON.parse(raw) }
   } catch {
-    return defaultApps as AppEntry[]
+    return EMPTY_OVERRIDES
   }
+}
+
+function isDefaultId(id: string) {
+  return (defaultApps as AppEntry[]).some((a) => a.id === id)
+}
+
+function computeApps(overrides: Overrides): AppEntry[] {
+  const base = (defaultApps as AppEntry[])
+    .filter((a) => !overrides.deletedIds.includes(a.id))
+    .map((a) => (overrides.edited[a.id] ? { ...overrides.edited[a.id], id: a.id } : a))
+  const added = overrides.added.filter((a) => !overrides.deletedIds.includes(a.id))
+  return [...base, ...added]
 }
 
 function makeId(name: string, existing: AppEntry[]) {
@@ -31,26 +54,38 @@ function makeId(name: string, existing: AppEntry[]) {
 }
 
 export function useApps() {
-  const [apps, setApps] = useState<AppEntry[]>(() => load())
+  const [overrides, setOverrides] = useState<Overrides>(() => loadOverrides())
+  const apps = computeApps(overrides)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(apps))
-  }, [apps])
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
+  }, [overrides])
 
   function addApp(entry: Omit<AppEntry, 'id'>) {
-    setApps((prev) => [...prev, { ...entry, id: makeId(entry.name, prev) }])
+    setOverrides((prev) => ({
+      ...prev,
+      added: [...prev.added, { ...entry, id: makeId(entry.name, computeApps(prev)) }],
+    }))
   }
 
   function updateApp(id: string, entry: Omit<AppEntry, 'id'>) {
-    setApps((prev) => prev.map((a) => (a.id === id ? { ...entry, id } : a)))
+    setOverrides((prev) =>
+      isDefaultId(id)
+        ? { ...prev, edited: { ...prev.edited, [id]: entry } }
+        : { ...prev, added: prev.added.map((a) => (a.id === id ? { ...entry, id } : a)) },
+    )
   }
 
   function deleteApp(id: string) {
-    setApps((prev) => prev.filter((a) => a.id !== id))
+    setOverrides((prev) =>
+      isDefaultId(id)
+        ? { ...prev, deletedIds: [...prev.deletedIds, id] }
+        : { ...prev, added: prev.added.filter((a) => a.id !== id) },
+    )
   }
 
   function resetToDefaults() {
-    setApps(defaultApps as AppEntry[])
+    setOverrides(EMPTY_OVERRIDES)
   }
 
   return { apps, addApp, updateApp, deleteApp, resetToDefaults }
