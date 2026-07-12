@@ -55,6 +55,14 @@ function PuzzleIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+function BoltIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M13 2 3 14h6l-1 8 11-13h-6l1-7z" />
+    </svg>
+  )
+}
+
 export const ICONS = {
   bunny: BunnyIcon,
   plane: PlaneIcon,
@@ -62,6 +70,7 @@ export const ICONS = {
   star: StarIcon,
   globe: GlobeIcon,
   puzzle: PuzzleIcon,
+  bolt: BoltIcon,
 } as const
 
 export type IconKey = keyof typeof ICONS

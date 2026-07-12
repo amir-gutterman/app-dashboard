@@ -14,5 +14,13 @@
     "image": "",
     "icon": "plane",
     "url": "https://amir-gutterman.github.io/flight-watch/"
+  },
+  {
+    "id": "electricity-tariffs",
+    "name": "Electricity Tariffs",
+    "description": "Find out cheaper electricity tariffs.",
+    "image": "",
+    "icon": "bolt",
+    "url": "https://amir-gutterman.github.io/electron-electricity-tariffs/"
   }
 ]
