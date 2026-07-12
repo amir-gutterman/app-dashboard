@@ -22,5 +22,13 @@
     "image": "",
     "icon": "bolt",
     "url": "https://amir-gutterman.github.io/electron-electricity-tariffs/"
+  },
+  {
+    "id": "supermarket-deals",
+    "name": "Supermarket Deals",
+    "description": "Check for deals in a list of supermarkets.",
+    "image": "",
+    "icon": "cart",
+    "url": "https://amir-gutterman.github.io/supermarket-deals/"
   }
 ]
