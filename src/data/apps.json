@@ -38,5 +38,13 @@
     "image": "",
     "icon": "question",
     "url": "https://amir-gutterman.github.io/question-watcher/"
+  },
+  {
+    "id": "cita-watcher",
+    "name": "Cita Watcher",
+    "description": "Check every 15min for an earlier doctor appointment.",
+    "image": "",
+    "icon": "medical",
+    "url": "https://amir-gutterman.github.io/cita-sanitaria-watcher/"
   }
 ]

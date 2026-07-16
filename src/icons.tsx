@@ -83,6 +83,15 @@ function QuestionIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+function MedicalIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="4" />
+      <path d="M12 8v8M8 12h8" />
+    </svg>
+  )
+}
+
 export const ICONS = {
   bunny: BunnyIcon,
   plane: PlaneIcon,
@@ -93,6 +102,7 @@ export const ICONS = {
   bolt: BoltIcon,
   cart: CartIcon,
   question: QuestionIcon,
+  medical: MedicalIcon,
 } as const
 
 export type IconKey = keyof typeof ICONS
