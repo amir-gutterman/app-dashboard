@@ -19,10 +19,10 @@ function gradientFor(id: string) {
 interface Props {
   app: AppEntry
   onEdit: () => void
-  onDelete: () => void
+  onArchive: () => void
 }
 
-export default function AppCard({ app, onEdit, onDelete }: Props) {
+export default function AppCard({ app, onEdit, onArchive }: Props) {
   const initial = app.name.trim().charAt(0).toUpperCase() || '?'
   const Icon = app.icon ? ICONS[app.icon] : null
 
@@ -41,12 +41,15 @@ export default function AppCard({ app, onEdit, onDelete }: Props) {
         </button>
         <button
           type="button"
-          onClick={onDelete}
-          aria-label={`Delete ${app.name}`}
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-red-600 shadow hover:bg-white dark:bg-neutral-800/90 dark:hover:bg-neutral-800"
+          onClick={onArchive}
+          aria-label={`Archive ${app.name}`}
+          title="Archive"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white dark:bg-neutral-800/90 dark:text-neutral-200 dark:hover:bg-neutral-800"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-            <path d="M6 7h12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m-8 0 1 13h8l1-13" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <rect x="3" y="4" width="18" height="4" rx="1" />
+            <path d="M5 8v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8" />
+            <path d="M10 12h4" />
           </svg>
         </button>
       </div>

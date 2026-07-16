@@ -3,14 +3,15 @@ import { useApps } from '../lib/useApps'
 import type { AppEntry } from '../types'
 import AppCard from './AppCard'
 import AppForm from './AppForm'
+import ArchiveSection from './ArchiveSection'
 
 export default function Dashboard() {
-  const { apps, addApp, updateApp, deleteApp } = useApps()
+  const { activeApps, archivedApps, addApp, updateApp, archiveApp, unarchiveApp } = useApps()
   const [editing, setEditing] = useState<AppEntry | 'new' | null>(null)
   const [copied, setCopied] = useState(false)
 
   async function handleExport() {
-    await navigator.clipboard.writeText(JSON.stringify(apps, null, 2))
+    await navigator.clipboard.writeText(JSON.stringify(activeApps, null, 2))
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
@@ -22,12 +23,6 @@ export default function Dashboard() {
       addApp(entry)
     }
     setEditing(null)
-  }
-
-  function handleDelete(app: AppEntry) {
-    if (window.confirm(`Delete "${app.name}"?`)) {
-      deleteApp(app.id)
-    }
   }
 
   return (
@@ -64,22 +59,24 @@ export default function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-5xl px-4 pb-12 sm:px-6">
-        {apps.length === 0 ? (
+        {activeApps.length === 0 ? (
           <p className="text-sm text-neutral-500 dark:text-neutral-400">
             No apps yet — click "Add App" to create one.
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {apps.map((app) => (
+            {activeApps.map((app) => (
               <AppCard
                 key={app.id}
                 app={app}
                 onEdit={() => setEditing(app)}
-                onDelete={() => handleDelete(app)}
+                onArchive={() => archiveApp(app.id)}
               />
             ))}
           </div>
         )}
+
+        <ArchiveSection apps={archivedApps} onUnarchive={unarchiveApp} />
       </main>
 
       {editing && (

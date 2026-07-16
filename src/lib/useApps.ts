@@ -4,16 +4,16 @@ import type { AppEntry } from '../types'
 
 // Stores only local *changes* relative to apps.json (never a full snapshot),
 // so newly deployed entries in apps.json always show up on every device,
-// and a device's local edits/additions/deletions still layer on top.
-const STORAGE_KEY = 'app-dashboard.overrides.v1'
+// and a device's local edits/additions/archiving still layer on top.
+const STORAGE_KEY = 'app-dashboard.overrides.v2'
 
 interface Overrides {
   added: AppEntry[]
   edited: Record<string, Omit<AppEntry, 'id'>>
-  deletedIds: string[]
+  archivedIds: string[]
 }
 
-const EMPTY_OVERRIDES: Overrides = { added: [], edited: {}, deletedIds: [] }
+const EMPTY_OVERRIDES: Overrides = { added: [], edited: {}, archivedIds: [] }
 
 function loadOverrides(): Overrides {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -29,12 +29,11 @@ function isDefaultId(id: string) {
   return (defaultApps as AppEntry[]).some((a) => a.id === id)
 }
 
-function computeApps(overrides: Overrides): AppEntry[] {
-  const base = (defaultApps as AppEntry[])
-    .filter((a) => !overrides.deletedIds.includes(a.id))
-    .map((a) => (overrides.edited[a.id] ? { ...overrides.edited[a.id], id: a.id } : a))
-  const added = overrides.added.filter((a) => !overrides.deletedIds.includes(a.id))
-  return [...base, ...added]
+function computeAll(overrides: Overrides): AppEntry[] {
+  const base = (defaultApps as AppEntry[]).map((a) =>
+    overrides.edited[a.id] ? { ...overrides.edited[a.id], id: a.id } : a,
+  )
+  return [...base, ...overrides.added]
 }
 
 function makeId(name: string, existing: AppEntry[]) {
@@ -55,7 +54,9 @@ function makeId(name: string, existing: AppEntry[]) {
 
 export function useApps() {
   const [overrides, setOverrides] = useState<Overrides>(() => loadOverrides())
-  const apps = computeApps(overrides)
+  const all = computeAll(overrides)
+  const activeApps = all.filter((a) => !overrides.archivedIds.includes(a.id))
+  const archivedApps = all.filter((a) => overrides.archivedIds.includes(a.id))
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
@@ -64,7 +65,7 @@ export function useApps() {
   function addApp(entry: Omit<AppEntry, 'id'>) {
     setOverrides((prev) => ({
       ...prev,
-      added: [...prev.added, { ...entry, id: makeId(entry.name, computeApps(prev)) }],
+      added: [...prev.added, { ...entry, id: makeId(entry.name, computeAll(prev)) }],
     }))
   }
 
@@ -76,17 +77,22 @@ export function useApps() {
     )
   }
 
-  function deleteApp(id: string) {
+  function archiveApp(id: string) {
     setOverrides((prev) =>
-      isDefaultId(id)
-        ? { ...prev, deletedIds: [...prev.deletedIds, id] }
-        : { ...prev, added: prev.added.filter((a) => a.id !== id) },
+      prev.archivedIds.includes(id) ? prev : { ...prev, archivedIds: [...prev.archivedIds, id] },
     )
+  }
+
+  function unarchiveApp(id: string) {
+    setOverrides((prev) => ({
+      ...prev,
+      archivedIds: prev.archivedIds.filter((existingId) => existingId !== id),
+    }))
   }
 
   function resetToDefaults() {
     setOverrides(EMPTY_OVERRIDES)
   }
 
-  return { apps, addApp, updateApp, deleteApp, resetToDefaults }
+  return { activeApps, archivedApps, addApp, updateApp, archiveApp, unarchiveApp, resetToDefaults }
 }
