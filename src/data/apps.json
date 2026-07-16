@@ -30,5 +30,13 @@
     "image": "",
     "icon": "cart",
     "url": "https://amir-gutterman.github.io/supermarket-deals/"
+  },
+  {
+    "id": "question-watcher",
+    "name": "Question Watcher",
+    "description": "Track a question.",
+    "image": "",
+    "icon": "question",
+    "url": "https://amir-gutterman.github.io/question-watcher/"
   }
 ]

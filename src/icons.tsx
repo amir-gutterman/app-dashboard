@@ -73,6 +73,16 @@ function CartIcon(props: SVGProps<SVGSVGElement>) {
   )
 }
 
+function QuestionIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="9.5" />
+      <path d="M9.2 9.5a2.8 2.8 0 1 1 4.3 2.4c-.9.6-1.5 1.1-1.5 2.1" />
+      <circle cx="12" cy="17" r="0.1" fill="currentColor" />
+    </svg>
+  )
+}
+
 export const ICONS = {
   bunny: BunnyIcon,
   plane: PlaneIcon,
@@ -82,6 +92,7 @@ export const ICONS = {
   puzzle: PuzzleIcon,
   bolt: BoltIcon,
   cart: CartIcon,
+  question: QuestionIcon,
 } as const
 
 export type IconKey = keyof typeof ICONS
