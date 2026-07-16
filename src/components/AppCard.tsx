@@ -51,7 +51,13 @@ export default function AppCard({ app, onEdit, onDelete }: Props) {
         </button>
       </div>
 
-      <div className="aspect-video w-full">
+      <a
+        href={app.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Launch ${app.name}`}
+        className="block aspect-video w-full transition-opacity hover:opacity-90"
+      >
         {app.image ? (
           <img
             src={app.image}
@@ -69,7 +75,7 @@ export default function AppCard({ app, onEdit, onDelete }: Props) {
             )}
           </div>
         )}
-      </div>
+      </a>
 
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
