@@ -16,18 +16,64 @@ function gradientFor(id: string) {
   return GRADIENTS[hash % GRADIENTS.length]
 }
 
+// A URL/path starts with a scheme or a slash; anything else typed into the
+// image field (e.g. an emoji) is rendered as large text instead of <img>.
+function isImageUrl(value: string) {
+  return /^(https?:\/\/|\/|data:|\.\/|\.\.\/)/.test(value)
+}
+
 interface Props {
   app: AppEntry
   onEdit: () => void
   onArchive: () => void
+  onMoveUp: () => void
+  onMoveDown: () => void
+  isFirst: boolean
+  isLast: boolean
 }
 
-export default function AppCard({ app, onEdit, onArchive }: Props) {
+export default function AppCard({
+  app,
+  onEdit,
+  onArchive,
+  onMoveUp,
+  onMoveDown,
+  isFirst,
+  isLast,
+}: Props) {
   const initial = app.name.trim().charAt(0).toUpperCase() || '?'
   const Icon = app.icon ? ICONS[app.icon] : null
+  const imageIsUrl = app.image && isImageUrl(app.image)
 
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-neutral-900">
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+        <button
+          type="button"
+          onClick={onMoveUp}
+          disabled={isFirst}
+          aria-label={`Move ${app.name} up`}
+          title="Move up"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white disabled:opacity-30 disabled:hover:bg-white/90 dark:bg-neutral-800/90 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={onMoveDown}
+          disabled={isLast}
+          aria-label={`Move ${app.name} down`}
+          title="Move down"
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-neutral-700 shadow hover:bg-white disabled:opacity-30 disabled:hover:bg-white/90 dark:bg-neutral-800/90 dark:text-neutral-200 dark:hover:bg-neutral-800"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <path d="M12 5v14M5 12l7 7 7-7" />
+          </svg>
+        </button>
+      </div>
+
       <div className="absolute top-2 right-2 z-10 flex gap-1">
         <button
           type="button"
@@ -61,7 +107,7 @@ export default function AppCard({ app, onEdit, onArchive }: Props) {
         aria-label={`Launch ${app.name}`}
         className="block aspect-video w-full transition-opacity hover:opacity-90"
       >
-        {app.image ? (
+        {imageIsUrl ? (
           <img
             src={app.image}
             alt={`${app.name} preview`}
@@ -71,7 +117,9 @@ export default function AppCard({ app, onEdit, onArchive }: Props) {
           <div
             className={`flex h-full w-full items-center justify-center bg-gradient-to-br ${gradientFor(app.id)}`}
           >
-            {Icon ? (
+            {app.image ? (
+              <span className="text-6xl leading-none">{app.image}</span>
+            ) : Icon ? (
               <Icon className="h-14 w-14 text-white/90" />
             ) : (
               <span className="text-5xl font-bold text-white/90">{initial}</span>

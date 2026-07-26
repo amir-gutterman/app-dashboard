@@ -75,13 +75,13 @@ export default function AppForm({ initial, onSubmit, onCancel }: Props) {
 
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-neutral-700 dark:text-neutral-300">
-              Image URL <span className="font-normal text-neutral-400">(optional, overrides icon)</span>
+              Image <span className="font-normal text-neutral-400">(URL or emoji, optional, overrides icon)</span>
             </span>
             <input
               value={image}
               onChange={(e) => setImage(e.target.value)}
               className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
-              placeholder="https://example.com/screenshot.png"
+              placeholder="https://example.com/screenshot.png or 🐰"
             />
           </label>
 

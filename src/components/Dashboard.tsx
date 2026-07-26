@@ -6,7 +6,8 @@ import AppForm from './AppForm'
 import ArchiveSection from './ArchiveSection'
 
 export default function Dashboard() {
-  const { activeApps, archivedApps, addApp, updateApp, archiveApp, unarchiveApp } = useApps()
+  const { activeApps, archivedApps, addApp, updateApp, archiveApp, unarchiveApp, moveApp } =
+    useApps()
   const [editing, setEditing] = useState<AppEntry | 'new' | null>(null)
   const [copied, setCopied] = useState(false)
 
@@ -65,12 +66,16 @@ export default function Dashboard() {
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {activeApps.map((app) => (
+            {activeApps.map((app, index) => (
               <AppCard
                 key={app.id}
                 app={app}
                 onEdit={() => setEditing(app)}
                 onArchive={() => archiveApp(app.id)}
+                onMoveUp={() => moveApp(app.id, 'up')}
+                onMoveDown={() => moveApp(app.id, 'down')}
+                isFirst={index === 0}
+                isLast={index === activeApps.length - 1}
               />
             ))}
           </div>
