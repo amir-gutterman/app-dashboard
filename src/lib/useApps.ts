@@ -4,17 +4,25 @@ import type { AppEntry } from '../types'
 
 // Stores only local *changes* relative to apps.json (never a full snapshot),
 // so newly deployed entries in apps.json always show up on every device,
-// and a device's local edits/additions/archiving/ordering still layer on top.
-const STORAGE_KEY = 'app-dashboard.overrides.v3'
+// and a device's local edits/additions/archiving/ordering/favorites still
+// layer on top.
+const STORAGE_KEY = 'app-dashboard.overrides.v4'
 
 interface Overrides {
   added: AppEntry[]
   edited: Record<string, Omit<AppEntry, 'id'>>
   archivedIds: string[]
+  favoriteIds: string[]
   order: string[]
 }
 
-const EMPTY_OVERRIDES: Overrides = { added: [], edited: {}, archivedIds: [], order: [] }
+const EMPTY_OVERRIDES: Overrides = {
+  added: [],
+  edited: {},
+  archivedIds: [],
+  favoriteIds: [],
+  order: [],
+}
 
 function loadOverrides(): Overrides {
   const raw = localStorage.getItem(STORAGE_KEY)
@@ -72,6 +80,7 @@ export function useApps() {
   )
   const activeApps = activeIds.map((id) => byId.get(id)!)
   const archivedApps = all.filter((a) => overrides.archivedIds.includes(a.id))
+  const favoriteIds = new Set(overrides.favoriteIds)
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
@@ -105,19 +114,39 @@ export function useApps() {
     }))
   }
 
-  function moveApp(id: string, direction: 'up' | 'down') {
+  function toggleFavorite(id: string) {
+    setOverrides((prev) => ({
+      ...prev,
+      favoriteIds: prev.favoriteIds.includes(id)
+        ? prev.favoriteIds.filter((existingId) => existingId !== id)
+        : [...prev.favoriteIds, id],
+    }))
+  }
+
+  // Commits a full reordering of the currently active ids, e.g. after a drag-and-drop drop.
+  function setOrder(newActiveOrder: string[]) {
+    setOverrides((prev) => ({ ...prev, order: newActiveOrder }))
+  }
+
+  // Upserts a batch of full AppEntry objects (matching Export JSON's shape) by id:
+  // ids that match a default app become edits, everything else becomes an addition.
+  function importApps(entries: AppEntry[]) {
     setOverrides((prev) => {
-      const currentAll = computeAll(prev)
-      const currentActiveIds = sortByOrder(
-        currentAll.filter((a) => !prev.archivedIds.includes(a.id)).map((a) => a.id),
-        prev.order,
-      )
-      const index = currentActiveIds.indexOf(id)
-      const swapWith = direction === 'up' ? index - 1 : index + 1
-      if (index === -1 || swapWith < 0 || swapWith >= currentActiveIds.length) return prev
-      const newOrder = [...currentActiveIds]
-      ;[newOrder[index], newOrder[swapWith]] = [newOrder[swapWith], newOrder[index]]
-      return { ...prev, order: newOrder }
+      let next = { ...prev, edited: { ...prev.edited }, added: [...prev.added] }
+      for (const entry of entries) {
+        const { id, ...rest } = entry
+        if (isDefaultId(id)) {
+          next.edited[id] = rest
+        } else {
+          const existingIndex = next.added.findIndex((a) => a.id === id)
+          if (existingIndex >= 0) {
+            next.added[existingIndex] = entry
+          } else {
+            next.added.push(entry)
+          }
+        }
+      }
+      return next
     })
   }
 
@@ -128,11 +157,14 @@ export function useApps() {
   return {
     activeApps,
     archivedApps,
+    favoriteIds,
     addApp,
     updateApp,
     archiveApp,
     unarchiveApp,
-    moveApp,
+    toggleFavorite,
+    setOrder,
+    importApps,
     resetToDefaults,
   }
 }

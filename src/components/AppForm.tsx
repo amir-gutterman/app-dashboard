@@ -4,15 +4,17 @@ import type { AppEntry } from '../types'
 
 interface Props {
   initial?: AppEntry
+  existingCategories: string[]
   onSubmit: (entry: Omit<AppEntry, 'id'>) => void
   onCancel: () => void
 }
 
-export default function AppForm({ initial, onSubmit, onCancel }: Props) {
+export default function AppForm({ initial, existingCategories, onSubmit, onCancel }: Props) {
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [url, setUrl] = useState(initial?.url ?? '')
   const [image, setImage] = useState(initial?.image ?? '')
+  const [category, setCategory] = useState(initial?.category ?? '')
   const [icon, setIcon] = useState<IconKey | ''>(initial?.icon ?? '')
 
   function handleSubmit(e: FormEvent) {
@@ -23,6 +25,7 @@ export default function AppForm({ initial, onSubmit, onCancel }: Props) {
       description: description.trim(),
       url: url.trim(),
       image: image.trim(),
+      category: category.trim() || undefined,
       icon: icon || undefined,
     })
   }
@@ -31,13 +34,13 @@ export default function AppForm({ initial, onSubmit, onCancel }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-neutral-900"
+        className="flex max-h-[90vh] w-full max-w-md flex-col rounded-2xl bg-white shadow-xl dark:bg-neutral-900"
       >
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <h2 className="px-6 pt-6 text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           {initial ? 'Edit app' : 'Add app'}
         </h2>
 
-        <div className="mt-4 flex flex-col gap-3">
+        <div className="mt-4 flex min-h-0 flex-col gap-3 overflow-y-auto px-6 pb-1">
           <label className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-neutral-700 dark:text-neutral-300">Name</span>
             <input
@@ -85,6 +88,24 @@ export default function AppForm({ initial, onSubmit, onCancel }: Props) {
             />
           </label>
 
+          <label className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-700 dark:text-neutral-300">
+              Category <span className="font-normal text-neutral-400">(optional, groups apps into sections)</span>
+            </span>
+            <input
+              list="category-options"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
+              placeholder="e.g. Watchers"
+            />
+            <datalist id="category-options">
+              {existingCategories.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </label>
+
           <div className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-neutral-700 dark:text-neutral-300">Icon</span>
             <div className="flex flex-wrap gap-2">
@@ -122,7 +143,7 @@ export default function AppForm({ initial, onSubmit, onCancel }: Props) {
           </div>
         </div>
 
-        <div className="mt-6 flex justify-end gap-2">
+        <div className="mt-6 flex justify-end gap-2 px-6 pb-6">
           <button
             type="button"
             onClick={onCancel}

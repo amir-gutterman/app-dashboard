@@ -8,5 +8,7 @@ export interface AppEntry {
   image: string
   /** Built-in vector icon shown when `image` is empty. Falls back to the name's initial when unset. */
   icon?: IconKey
+  /** Optional free-form category name, used to group apps into collapsible sections. */
+  category?: string
   url: string
 }

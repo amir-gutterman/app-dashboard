@@ -5,6 +5,7 @@
     "description": "A gamified task tracker with a virtual bunny pet that levels up as you complete your Google Tasks.",
     "image": "",
     "icon": "bunny",
+    "category": "Productivity",
     "url": "https://bunnyfocus-backend.onrender.com"
   },
   {
@@ -13,6 +14,7 @@
     "description": "Monitors flight and hotel prices and reports back when a good deal shows up.",
     "image": "",
     "icon": "plane",
+    "category": "Watchers",
     "url": "https://amir-gutterman.github.io/flight-watch/"
   },
   {
@@ -21,6 +23,7 @@
     "description": "Find out cheaper electricity tariffs.",
     "image": "",
     "icon": "bolt",
+    "category": "Watchers",
     "url": "https://amir-gutterman.github.io/electron-electricity-tariffs/"
   },
   {
@@ -29,6 +32,7 @@
     "description": "Check for deals in a list of supermarkets.",
     "image": "",
     "icon": "cart",
+    "category": "Watchers",
     "url": "https://amir-gutterman.github.io/supermarket-deals/"
   },
   {
@@ -37,6 +41,7 @@
     "description": "Track a question.",
     "image": "",
     "icon": "question",
+    "category": "Watchers",
     "url": "https://amir-gutterman.github.io/question-watcher/"
   },
   {
@@ -45,6 +50,7 @@
     "description": "Check every 15min for an earlier doctor appointment.",
     "image": "",
     "icon": "medical",
+    "category": "Watchers",
     "url": "https://amir-gutterman.github.io/cita-sanitaria-watcher/"
   },
   {
@@ -52,6 +58,7 @@
     "name": "Rabbit Sneeze",
     "description": "Track your rabbit's sneezes to watch for early signs of illness.",
     "image": "🤧",
+    "category": "Pets",
     "url": "https://rabbit-sneeze-tracker.vercel.app/"
   }
 ]
