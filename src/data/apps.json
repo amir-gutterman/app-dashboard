@@ -60,5 +60,13 @@
     "image": "🤧",
     "category": "Pets",
     "url": "https://rabbit-sneeze-tracker.vercel.app/"
+  },
+  {
+    "id": "grocery-intelligence",
+    "name": "Grocery Intelligence",
+    "description": "Track and analyze your grocery shopping habits and spending.",
+    "image": "🛒",
+    "category": "Shopping",
+    "url": "https://marvelous-seahorse-1769a6.netlify.app/"
   }
 ]
