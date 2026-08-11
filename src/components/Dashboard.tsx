@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useApps } from '../lib/useApps'
 import { useDragReorder } from '../lib/useDragReorder'
-import { useRecents } from '../lib/useRecents'
 import { useViewMode } from '../lib/useViewMode'
 import type { AppEntry } from '../types'
 import AppCard from './AppCard'
@@ -27,7 +26,6 @@ export default function Dashboard() {
     setOrder,
     importApps,
   } = useApps()
-  const { recentIds, recordLaunch } = useRecents()
   const [viewMode, setViewMode] = useViewMode()
 
   const [editMode, setEditMode] = useState(false)
@@ -58,7 +56,6 @@ export default function Dashboard() {
     : []
 
   const favoriteApps = orderedApps.filter((app) => favoriteIds.has(app.id))
-  const recentApps = recentIds.map((id) => byId.get(id)).filter((a): a is AppEntry => !!a)
 
   const categories = useMemo(
     () => Array.from(new Set(orderedApps.map((a) => a.category).filter((c): c is string => !!c))),
@@ -87,7 +84,6 @@ export default function Dashboard() {
       editMode,
       isFavorite: favoriteIds.has(app.id),
       onToggleFavorite: () => toggleFavorite(app.id),
-      onLaunch: () => recordLaunch(app.id),
       onEdit: () => setEditing(app),
       onArchive: () => archiveApp(app.id),
     }
@@ -162,7 +158,6 @@ export default function Dashboard() {
           )
         ) : (
           <>
-            <AppSection title="Recently Used" apps={recentApps} renderItem={renderItem} layout={viewMode} />
             <AppSection title="Favorites" apps={favoriteApps} renderItem={renderItem} layout={viewMode} />
             {categories.length === 0 ? (
               <AppSection title="Apps" apps={uncategorized} renderItem={renderItem} layout={viewMode} />

@@ -6,7 +6,6 @@ interface Props {
   editMode: boolean
   isFavorite: boolean
   onToggleFavorite: () => void
-  onLaunch: () => void
   onEdit: () => void
   onArchive: () => void
 }
@@ -16,7 +15,6 @@ export default function AppCard({
   editMode,
   isFavorite,
   onToggleFavorite,
-  onLaunch,
   onEdit,
   onArchive,
 }: Props) {
@@ -86,7 +84,6 @@ export default function AppCard({
         href={app.url}
         target="_blank"
         rel="noopener noreferrer"
-        onClick={onLaunch}
         aria-label={`Launch ${app.name}`}
         className="block aspect-video w-full transition-opacity hover:opacity-90"
       >
@@ -121,7 +118,6 @@ export default function AppCard({
           href={app.url}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={onLaunch}
           className="mt-auto inline-flex items-center justify-center rounded-lg bg-neutral-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-700 active:scale-[0.98] dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
         >
           Launch App

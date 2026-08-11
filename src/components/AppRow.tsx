@@ -18,7 +18,6 @@ interface Props {
   rowRef?: (el: HTMLElement | null) => void
   dragHandleProps?: DragHandleProps
   onToggleFavorite: () => void
-  onLaunch: () => void
   onEdit: () => void
   onArchive: () => void
 }
@@ -32,7 +31,6 @@ export default function AppRow({
   rowRef,
   dragHandleProps,
   onToggleFavorite,
-  onLaunch,
   onEdit,
   onArchive,
 }: Props) {
@@ -186,7 +184,6 @@ export default function AppRow({
       href={app.url}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={onLaunch}
       className={`${baseClass} transition-colors active:bg-neutral-100 dark:active:bg-neutral-900`}
     >
       {content}

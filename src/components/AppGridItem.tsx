@@ -7,7 +7,6 @@ interface Props {
   editMode: boolean
   isFavorite: boolean
   onToggleFavorite: () => void
-  onLaunch: () => void
   onEdit: () => void
   onArchive: () => void
 }
@@ -17,7 +16,6 @@ export default function AppGridItem({
   editMode,
   isFavorite,
   onToggleFavorite,
-  onLaunch,
   onEdit,
   onArchive,
 }: Props) {
@@ -108,7 +106,6 @@ export default function AppGridItem({
       href={app.url}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={onLaunch}
       className={`${baseClass} transition-colors active:bg-neutral-100 dark:active:bg-neutral-900`}
     >
       {content}
