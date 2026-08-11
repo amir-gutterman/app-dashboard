@@ -1,6 +1,16 @@
 import { useState, type FormEvent } from 'react'
+import { AVATAR_COLORS, AVATAR_COLOR_KEYS, type AvatarColor } from './AppAvatar'
 import { ICONS, ICON_KEYS, type IconKey } from '../icons'
 import type { AppEntry } from '../types'
+
+const COLOR_LABELS: Record<AvatarColor, string> = {
+  violet: 'Violet',
+  sky: 'Sky',
+  amber: 'Amber',
+  emerald: 'Emerald',
+  rose: 'Rose',
+  indigo: 'Indigo',
+}
 
 interface Props {
   initial?: AppEntry
@@ -16,6 +26,7 @@ export default function AppForm({ initial, existingCategories, onSubmit, onCance
   const [image, setImage] = useState(initial?.image ?? '')
   const [category, setCategory] = useState(initial?.category ?? '')
   const [icon, setIcon] = useState<IconKey | ''>(initial?.icon ?? '')
+  const [color, setColor] = useState<AvatarColor | ''>(initial?.color ?? '')
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -27,6 +38,7 @@ export default function AppForm({ initial, existingCategories, onSubmit, onCance
       image: image.trim(),
       category: category.trim() || undefined,
       icon: icon || undefined,
+      color: color || undefined,
     })
   }
 
@@ -105,6 +117,37 @@ export default function AppForm({ initial, existingCategories, onSubmit, onCance
               ))}
             </datalist>
           </label>
+
+          <div className="flex flex-col gap-1 text-sm">
+            <span className="font-medium text-neutral-700 dark:text-neutral-300">
+              Background color <span className="font-normal text-neutral-400">(optional)</span>
+            </span>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setColor('')}
+                aria-pressed={color === ''}
+                title="Auto"
+                className={`flex h-9 w-9 items-center justify-center rounded-full border-2 bg-[conic-gradient(from_0deg,#8b5cf6,#0ea5e9,#f59e0b,#10b981,#f43f5e,#6366f1,#8b5cf6)] text-[9px] font-semibold text-white ${
+                  color === '' ? 'border-neutral-900 dark:border-white' : 'border-transparent'
+                }`}
+              >
+                Auto
+              </button>
+              {AVATAR_COLOR_KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setColor(key)}
+                  aria-pressed={color === key}
+                  title={COLOR_LABELS[key]}
+                  className={`h-9 w-9 rounded-full border-2 bg-gradient-to-br ${AVATAR_COLORS[key]} ${
+                    color === key ? 'border-neutral-900 dark:border-white' : 'border-transparent'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
 
           <div className="flex flex-col gap-1 text-sm">
             <span className="font-medium text-neutral-700 dark:text-neutral-300">Icon</span>

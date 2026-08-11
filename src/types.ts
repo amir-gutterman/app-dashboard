@@ -1,3 +1,4 @@
+import type { AvatarColor } from './components/AppAvatar'
 import type { IconKey } from './icons'
 
 export interface AppEntry {
@@ -8,6 +9,8 @@ export interface AppEntry {
   image: string
   /** Built-in vector icon shown when `image` is empty. Falls back to the name's initial when unset. */
   icon?: IconKey
+  /** Background gradient behind the icon/emoji/initial. Falls back to a deterministic auto-pick from the id when unset. */
+  color?: AvatarColor
   /** Optional free-form category name, used to group apps into collapsible sections. */
   category?: string
   url: string
