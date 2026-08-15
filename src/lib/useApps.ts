@@ -1,59 +1,49 @@
-import { useEffect, useState } from 'react'
-import defaultApps from '../data/apps.json'
+import { useCallback, useEffect, useState } from 'react'
+import type { AvatarColor } from '../components/AppAvatar'
+import type { IconKey } from '../icons'
 import type { AppEntry } from '../types'
+import { supabase } from './supabaseClient'
 
-// Stores only local *changes* relative to apps.json (never a full snapshot),
-// so newly deployed entries in apps.json always show up on every device,
-// and a device's local edits/additions/archiving/ordering/favorites still
-// layer on top.
-const STORAGE_KEY = 'app-dashboard.overrides.v4'
-
-interface Overrides {
-  added: AppEntry[]
-  edited: Record<string, Omit<AppEntry, 'id'>>
-  archivedIds: string[]
-  favoriteIds: string[]
-  order: string[]
+interface DbRow {
+  id: string
+  name: string
+  description: string
+  image: string
+  icon: string | null
+  color: string | null
+  category: string | null
+  url: string
+  favorite: boolean
+  archived: boolean
+  sort_order: number
 }
 
-const EMPTY_OVERRIDES: Overrides = {
-  added: [],
-  edited: {},
-  archivedIds: [],
-  favoriteIds: [],
-  order: [],
-}
-
-function loadOverrides(): Overrides {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) return EMPTY_OVERRIDES
-  try {
-    return { ...EMPTY_OVERRIDES, ...JSON.parse(raw) }
-  } catch {
-    return EMPTY_OVERRIDES
+function rowToEntry(row: DbRow): AppEntry {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    image: row.image,
+    icon: (row.icon ?? undefined) as IconKey | undefined,
+    color: (row.color ?? undefined) as AvatarColor | undefined,
+    category: row.category ?? undefined,
+    url: row.url,
   }
 }
 
-function isDefaultId(id: string) {
-  return (defaultApps as AppEntry[]).some((a) => a.id === id)
+function entryToColumns(entry: Omit<AppEntry, 'id'>) {
+  return {
+    name: entry.name,
+    description: entry.description,
+    image: entry.image,
+    icon: entry.icon ?? null,
+    color: entry.color ?? null,
+    category: entry.category ?? null,
+    url: entry.url,
+  }
 }
 
-function computeAll(overrides: Overrides): AppEntry[] {
-  const base = (defaultApps as AppEntry[]).map((a) =>
-    overrides.edited[a.id] ? { ...overrides.edited[a.id], id: a.id } : a,
-  )
-  return [...base, ...overrides.added]
-}
-
-// Orders `ids` by their position in `order`, appending any id missing from
-// `order` (e.g. one just added, or a newly deployed apps.json entry) at the end.
-function sortByOrder(ids: string[], order: string[]): string[] {
-  const known = order.filter((id) => ids.includes(id))
-  const unknown = ids.filter((id) => !order.includes(id))
-  return [...known, ...unknown]
-}
-
-function makeId(name: string, existing: AppEntry[]) {
+function makeId(name: string, existingIds: string[]) {
   const base =
     name
       .trim()
@@ -62,7 +52,7 @@ function makeId(name: string, existing: AppEntry[]) {
       .replace(/(^-|-$)/g, '') || 'app'
   let id = base
   let n = 2
-  while (existing.some((a) => a.id === id)) {
+  while (existingIds.includes(id)) {
     id = `${base}-${n}`
     n += 1
   }
@@ -70,94 +60,99 @@ function makeId(name: string, existing: AppEntry[]) {
 }
 
 export function useApps() {
-  const [overrides, setOverrides] = useState<Overrides>(() => loadOverrides())
-  const all = computeAll(overrides)
-  const byId = new Map(all.map((a) => [a.id, a]))
+  const [rows, setRows] = useState<DbRow[]>([])
+  const [loaded, setLoaded] = useState(false)
 
-  const activeIds = sortByOrder(
-    all.filter((a) => !overrides.archivedIds.includes(a.id)).map((a) => a.id),
-    overrides.order,
-  )
-  const activeApps = activeIds.map((id) => byId.get(id)!)
-  const archivedApps = all.filter((a) => overrides.archivedIds.includes(a.id))
-  const favoriteIds = new Set(overrides.favoriteIds)
+  const reload = useCallback(async () => {
+    const { data, error } = await supabase.from('apps').select('*').order('sort_order', { ascending: true })
+    if (!error && data) setRows(data as DbRow[])
+    setLoaded(true)
+  }, [])
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides))
-  }, [overrides])
+    reload()
+    // Live cross-device sync: any device's change refreshes every open tab.
+    const channel = supabase
+      .channel('apps-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'apps' }, () => reload())
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [reload])
 
-  function addApp(entry: Omit<AppEntry, 'id'>) {
-    setOverrides((prev) => ({
-      ...prev,
-      added: [...prev.added, { ...entry, id: makeId(entry.name, computeAll(prev)) }],
-    }))
-  }
+  const activeRows = rows.filter((r) => !r.archived)
+  const activeApps = activeRows.map(rowToEntry)
+  const archivedApps = rows.filter((r) => r.archived).map(rowToEntry)
+  const favoriteIds = new Set(rows.filter((r) => r.favorite).map((r) => r.id))
 
-  function updateApp(id: string, entry: Omit<AppEntry, 'id'>) {
-    setOverrides((prev) =>
-      isDefaultId(id)
-        ? { ...prev, edited: { ...prev.edited, [id]: entry } }
-        : { ...prev, added: prev.added.map((a) => (a.id === id ? { ...entry, id } : a)) },
+  async function addApp(entry: Omit<AppEntry, 'id'>) {
+    const id = makeId(
+      entry.name,
+      rows.map((r) => r.id),
     )
+    const nextOrder = rows.reduce((max, r) => Math.max(max, r.sort_order), -1) + 1
+    const { error } = await supabase.from('apps').insert({ id, ...entryToColumns(entry), sort_order: nextOrder })
+    if (!error) await reload()
   }
 
-  function archiveApp(id: string) {
-    setOverrides((prev) =>
-      prev.archivedIds.includes(id) ? prev : { ...prev, archivedIds: [...prev.archivedIds, id] },
-    )
+  async function updateApp(id: string, entry: Omit<AppEntry, 'id'>) {
+    const { error } = await supabase.from('apps').update(entryToColumns(entry)).eq('id', id)
+    if (!error) await reload()
   }
 
-  function unarchiveApp(id: string) {
-    setOverrides((prev) => ({
-      ...prev,
-      archivedIds: prev.archivedIds.filter((existingId) => existingId !== id),
-    }))
+  async function archiveApp(id: string) {
+    const { error } = await supabase.from('apps').update({ archived: true }).eq('id', id)
+    if (!error) await reload()
   }
 
-  function toggleFavorite(id: string) {
-    setOverrides((prev) => ({
-      ...prev,
-      favoriteIds: prev.favoriteIds.includes(id)
-        ? prev.favoriteIds.filter((existingId) => existingId !== id)
-        : [...prev.favoriteIds, id],
-    }))
+  async function unarchiveApp(id: string) {
+    const { error } = await supabase.from('apps').update({ archived: false }).eq('id', id)
+    if (!error) await reload()
+  }
+
+  async function toggleFavorite(id: string) {
+    const row = rows.find((r) => r.id === id)
+    if (!row) return
+    const { error } = await supabase.from('apps').update({ favorite: !row.favorite }).eq('id', id)
+    if (!error) await reload()
   }
 
   // Commits a full reordering of the currently active ids, e.g. after a drag-and-drop drop.
-  function setOrder(newActiveOrder: string[]) {
-    setOverrides((prev) => ({ ...prev, order: newActiveOrder }))
+  async function setOrder(newActiveOrder: string[]) {
+    const orderIndex = new Map(newActiveOrder.map((id, index) => [id, index]))
+    setRows((prev) => prev.map((r) => (orderIndex.has(r.id) ? { ...r, sort_order: orderIndex.get(r.id)! } : r)))
+    await Promise.all(
+      newActiveOrder.map((id, index) => supabase.from('apps').update({ sort_order: index }).eq('id', id)),
+    )
+    await reload()
   }
 
   // Upserts a batch of full AppEntry objects (matching Export JSON's shape) by id:
-  // ids that match a default app become edits, everything else becomes an addition.
-  function importApps(entries: AppEntry[]) {
-    setOverrides((prev) => {
-      let next = { ...prev, edited: { ...prev.edited }, added: [...prev.added] }
-      for (const entry of entries) {
-        const { id, ...rest } = entry
-        if (isDefaultId(id)) {
-          next.edited[id] = rest
-        } else {
-          const existingIndex = next.added.findIndex((a) => a.id === id)
-          if (existingIndex >= 0) {
-            next.added[existingIndex] = entry
-          } else {
-            next.added.push(entry)
-          }
-        }
+  // existing ids get updated in place (keeping their favorite/archived/order),
+  // new ids get appended at the end.
+  async function importApps(entries: AppEntry[]) {
+    const existingById = new Map(rows.map((r) => [r.id, r]))
+    let nextOrder = rows.reduce((max, r) => Math.max(max, r.sort_order), -1) + 1
+    const upserts = entries.map((entry) => {
+      const existing = existingById.get(entry.id)
+      return {
+        id: entry.id,
+        ...entryToColumns(entry),
+        favorite: existing?.favorite ?? false,
+        archived: existing?.archived ?? false,
+        sort_order: existing ? existing.sort_order : nextOrder++,
       }
-      return next
     })
-  }
-
-  function resetToDefaults() {
-    setOverrides(EMPTY_OVERRIDES)
+    const { error } = await supabase.from('apps').upsert(upserts, { onConflict: 'id' })
+    if (!error) await reload()
   }
 
   return {
     activeApps,
     archivedApps,
     favoriteIds,
+    loaded,
     addApp,
     updateApp,
     archiveApp,
@@ -165,6 +160,5 @@ export function useApps() {
     toggleFavorite,
     setOrder,
     importApps,
-    resetToDefaults,
   }
 }

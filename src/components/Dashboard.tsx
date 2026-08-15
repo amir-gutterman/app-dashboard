@@ -18,6 +18,7 @@ export default function Dashboard() {
     activeApps,
     archivedApps,
     favoriteIds,
+    loaded,
     addApp,
     updateApp,
     archiveApp,
@@ -69,11 +70,11 @@ export default function Dashboard() {
     setTimeout(() => setCopied(false), 1500)
   }
 
-  function handleSubmit(entry: Omit<AppEntry, 'id'>) {
+  async function handleSubmit(entry: Omit<AppEntry, 'id'>) {
     if (editing && editing !== 'new') {
-      updateApp(editing.id, entry)
+      await updateApp(editing.id, entry)
     } else {
-      addApp(entry)
+      await addApp(entry)
     }
     setEditing(null)
   }
@@ -144,7 +145,9 @@ export default function Dashboard() {
       <SearchBar value={search} onChange={setSearch} />
 
       <main className="mx-auto max-w-3xl px-4 pb-28 sm:px-6">
-        {activeApps.length === 0 ? (
+        {!loaded ? (
+          <p className="px-1 py-6 text-sm text-neutral-500 dark:text-neutral-400">Loading apps…</p>
+        ) : activeApps.length === 0 ? (
           <p className="px-1 py-6 text-sm text-neutral-500 dark:text-neutral-400">
             No apps yet — tap the + button to create one.
           </p>
