@@ -8,6 +8,12 @@ export const AVATAR_COLORS = {
   emerald: 'from-emerald-500 to-teal-400',
   rose: 'from-rose-500 to-pink-500',
   indigo: 'from-indigo-500 to-blue-500',
+  red: 'from-red-500 to-rose-600',
+  lime: 'from-lime-500 to-green-600',
+  cyan: 'from-cyan-500 to-teal-600',
+  fuchsia: 'from-fuchsia-500 to-purple-600',
+  yellow: 'from-yellow-400 to-amber-500',
+  slate: 'from-slate-500 to-slate-700',
 } as const
 
 export type AvatarColor = keyof typeof AVATAR_COLORS

@@ -10,6 +10,12 @@ const COLOR_LABELS: Record<AvatarColor, string> = {
   emerald: 'Emerald',
   rose: 'Rose',
   indigo: 'Indigo',
+  red: 'Red',
+  lime: 'Lime',
+  cyan: 'Cyan',
+  fuchsia: 'Fuchsia',
+  yellow: 'Yellow',
+  slate: 'Slate',
 }
 
 interface Props {
